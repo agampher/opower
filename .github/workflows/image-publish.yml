@@ -26,7 +26,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}/${{ github.event.repository.name }}:latest
+          tags: ghcr.io/${{ github.repository }}/gampower:latest
 
       - name: Log out from Registry
         run: docker logout ghcr.io

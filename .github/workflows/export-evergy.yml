@@ -9,7 +9,7 @@ jobs:
   gather-data:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}/${{ github.event.repository.name }}:latest
+      image: ghcr.io/${{ github.repository }}/gampower:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
