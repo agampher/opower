@@ -18,7 +18,7 @@ jobs:
         UTILITY: evergy
         USERNAME: ${{ secrets.EVERGY_USERNAME }}
         PASSWORD: ${{ secrets.EVERGY_PASSWORD }}
-        USAGE_ONLY: true
+        USAGE_ONLY: false
         AGGREGATE_TYPE: HOUR
         # START_DATE: 2024-01-01
         # END_DATE: 2024-01-31
