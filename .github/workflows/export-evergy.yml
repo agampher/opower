@@ -1,0 +1,68 @@
+name: Export Evergy Data
+
+on:
+  schedule:
+    - cron: '0 17 * * *' # UTC
+  workflow_dispatch:
+
+jobs:
+  gather-data:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/gampower:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: "--entrypoint /bin/bash"
+      env:
+        UTILITY: evergy
+        USERNAME: ${{ secrets.EVERGY_USERNAME }}
+        PASSWORD: ${{ secrets.EVERGY_PASSWORD }}
+        USAGE_ONLY: false
+        AGGREGATE_TYPE: HOUR
+        # START_DATE: 2024-01-01
+        # END_DATE: 2024-01-31
+    steps:
+      - name: Run main
+        id: main
+        working-directory: /app
+        shell: bash
+        run: |
+          python3 -u main.py > /tmp/power.txt
+      - name: Upload artifact
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: output
+          path: /tmp/power.txt
+
+  upload-to-s3:
+    needs: gather-data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifact
+        id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: output
+          path: ./
+
+      - name: Get previous day's date
+        id: date
+        run: |
+          echo "YEAR=$(date -d 'yesterday' +%Y)" >> $GITHUB_ENV
+          echo "MONTH=$(date -d 'yesterday' +%m)" >> $GITHUB_ENV
+          echo "YESTERDAY=$(date -d 'yesterday' +%Y%m%d)" >> $GITHUB_ENV      
+
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          
+      - name: Upload to S3
+        id: upload-s3
+        run: aws s3 cp ./power.txt s3://${{ secrets.AWS_BUCKET_NAME }}/${{ env.YESTERDAY }}.csv
