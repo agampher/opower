@@ -34,11 +34,11 @@ jobs:
 
       - name: Delete unneeded workflows
         run: |
-          rm -f .github/workflows/python-package.yml
-          rm -f .github/workflows/python-publish.yml
+          rm --force .github/workflows/python-package.yml
+          rm --force .github/workflows/python-publish.yml
 
       - name: Commit changes
         run: |
           git add .
-          git commit -m "Delete unneeded workflow files"
-          git push origin main
+          git commit --message "Delete unneeded workflow files"
+          git push --force origin main
